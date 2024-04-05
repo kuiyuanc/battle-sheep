@@ -1,6 +1,15 @@
-import STcpClient
-import numpy as np
 import random
+
+import STcpClient
+
+
+def GetLegalInitPos(mapStat):
+    def AtBoundary(i, j):
+        return i == 0 or i == len(mapStat) - 1 or j == 0 or j == len(mapStat) - 1 or \
+            mapStat[i][j - 1] == -1 or mapStat[i][j + 1] == -1 or mapStat[i - 1][j] == -1 or mapStat[i + 1][j] == -1
+
+    return [[i, j] for i, j in zip(range(len(mapStat)), range(len(mapStat))) if mapStat[i][j] == 0 and AtBoundary(i, j)]
+
 
 '''
     選擇起始位置
@@ -13,12 +22,11 @@ import random
 
 
 def InitPos(mapStat):
-    init_pos = [0, 0]
-    '''
-        Write your code here
+    # get legal positions
+    legal_pos = GetLegalInitPos(mapStat)
 
-    '''
-    return init_pos
+    # choose randomly
+    return random.choice(legal_pos)
 
 
 '''
