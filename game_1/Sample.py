@@ -8,7 +8,7 @@ def GetLegalInitPos(mapStat):
         return i == 0 or i == len(mapStat) - 1 or j == 0 or j == len(mapStat) - 1 or \
             mapStat[i][j - 1] == -1 or mapStat[i][j + 1] == -1 or mapStat[i - 1][j] == -1 or mapStat[i + 1][j] == -1
 
-    return [[i, j] for i, j in zip(range(len(mapStat)), range(len(mapStat))) if mapStat[i][j] == 0 and AtBoundary(i, j)]
+    return [[i, j] for i in range(len(mapStat)) for j in range(len(mapStat)) if mapStat[i][j] == 0 and AtBoundary(i, j)]
 
 
 '''
