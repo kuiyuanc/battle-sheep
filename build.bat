@@ -1,3 +1,4 @@
+@cls
 @echo off
 
 set agent_to_replace=1
