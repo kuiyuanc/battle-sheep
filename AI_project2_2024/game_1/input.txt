@@ -1,5 +1,5 @@
 1
-./dist/Agent.exe
+.dist/110550004/110550004.exe
 2
 ./sample/Sample_2.exe
 3

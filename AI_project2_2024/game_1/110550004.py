@@ -19,26 +19,26 @@ class GameState:
         valid_moves = []
         for x in range(12):
             for y in range(12):
-                if self.sheepStat[y][x] > 1 and self.board[y][x] == self.player_turn:
+                if self.sheepStat[x][y] > 1 and self.board[x][y] == self.player_turn:
                     for direction in range(1, 10):
                         if direction == 5:
                             continue
 
-                        step_count = self.is_valid_direction(y, x, direction)
+                        step_count = self.is_valid_direction(x, y, direction)
                         if step_count > 0:
-                            for split_group_count in range(1, self.sheepStat[y][x]):
-                                valid_moves.append(((y, x), split_group_count, direction, step_count))
+                            for split_group_count in range(1, self.sheepStat[x][y]):
+                                valid_moves.append(((x, y), split_group_count, direction, step_count))
         print("Valid moves: \n", valid_moves)
         return valid_moves
     
     def is_valid_direction(self, y, x, direction):
-        dy, dx = {1: (-1, -1), 2: (-1, 0), 3: (-1, 1),
-                  4: ( 0, -1), 5: ( 0, 0), 6: ( 0, 1),
-                  7: ( 1, -1), 8: ( 1, 0), 9: ( 1, 1)}[direction]
-        ny, nx = y + dy, x + dx
+        dx, dy = {1: (-1, -1), 2: ( 0,-1), 3: ( 1,-1),
+                  4: (-1,  0), 5: ( 0, 0), 6: ( 1, 0),
+                  7: (-1,  1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
+        nx, ny = x + dx, y + dy
 
         # First step must be within bounds and unoccupied
-        if not (0 <= nx < 12 and 0 <= ny < 12 and self.board[ny][nx] == 0 and self.sheepStat[ny][nx] == 0):
+        if not (0 <= nx < 12 and 0 <= ny < 12 and self.board[nx][ny] == 0 and self.sheepStat[nx][ny] == 0):
             return 0
         
         count = 0
@@ -50,36 +50,36 @@ class GameState:
             ny += dy
             if not (0 <= nx < 12 and 0 <= ny < 12):  # Stop if next step goes out of bounds
                 break
-            if self.board[ny][nx] != 0:  # Stop if next step hits an obstacle or sheep
+            if self.board[nx][ny] != 0:  # Stop if next step hits an obstacle or sheep
                 break
 
         return count  # The direction is valid if the sheep can start moving, return the steps count
 
     def make_move(self, move):
-        (y, x), split_group_count, direction, step_count = move
+        (x, y), split_group_count, direction, step_count = move
         #if not self.is_valid_direction(x, y, direction):
         #    return False  # If the move isn't valid, return False
         
         # Calculate the new position for the split group of sheep
-        new_y, new_x = self.calculate_new_position(y, x, direction, step_count)
+        new_y, new_x = self.calculate_new_position(x, y, direction, step_count)
         
         # Update sheepStat for the new and original positions
-        self.sheepStat[new_y][new_x] = split_group_count
-        self.sheepStat[y][x] -= split_group_count
+        self.sheepStat[new_x][new_y] = split_group_count
+        self.sheepStat[x][y] -= split_group_count
         
         return True  # Return True to indicate the move was successfully made
     
-    def calculate_new_position(self, y, x, direction, step_count):
-        dy, dx = {1: (-1, -1), 2: (-1, 0), 3: (-1, 1),
-                  4: ( 0, -1), 5: ( 0, 0), 6: ( 0, 1),
-                  7: ( 1, -1), 8: ( 1, 0), 9: ( 1, 1)}[direction]
+    def calculate_new_position(self, x, y, direction, step_count):
+        dx, dy = {1: (-1, -1), 2: ( 0,-1), 3: ( 1,-1),
+                  4: (-1,  0), 5: ( 0, 0), 6: ( 1, 0),
+                  7: (-1,  1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
         
-        ny, nx = y, x
+        nx, ny = x, y
         # Keep moving in the direction until an obstacle is reached or edge of board
         nx += dx * step_count
         ny += dy * step_count
         
-        return ny, nx
+        return nx, ny
     
     def next_player_turn(self):
         # Assuming player IDs are 1 through 4 and stored in self.player_turn
@@ -92,14 +92,14 @@ class GameState:
         def dfs(board, x, y, player_id, visited):
             if (x, y) in visited or not (0 <= x < 12 and 0 <= y < 12):
                 return 0
-            if board[y][x] != player_id:
+            if board[x][y] != player_id:
                 return 0
             visited.add((x, y))
             return 1 + sum(dfs(board, x + dx, y + dy, player_id, visited) for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)])
         
         for x in range(12):
             for y in range(12):
-                player_id = self.board[y][x]
+                player_id = self.board[x][y]
                 if player_id in player_scores and (x, y) not in visited:
                     region_size = dfs(self.board, x, y, player_id, visited)
                     # Add the score of this region to the player's total score
@@ -113,12 +113,6 @@ class GameState:
         return winner, player_scores  # Returns the winner and the scores of all players
 
     def game_end(self):
-        """
-        Determines if the game has ended.
-
-        Returns:
-            True if the game has ended, False otherwise.
-        """
         return len(self.get_valid_moves()) == 0
 
 
@@ -186,7 +180,7 @@ def find_edge_pos(board):
     rows, cols = board.shape
     for x in range(cols):
         for y in range(rows):
-            if board[y][x] == 0: # The chosen position must be empty
+            if board[x][y] == 0: # The chosen position must be empty
                 if x == 0 or x == rows - 1 or y == 0 or y == cols - 1 or is_adjacent_to_obstacle(board, x, y, rows, cols): # Check if it's on the boundary or orthogonally adjacent to an obstacle
                     edge_pos.append([x, y])
     return edge_pos
@@ -195,14 +189,14 @@ def find_edge_pos(board):
 def is_adjacent_to_obstacle(board, x, y, rows, cols):
     for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
         nx, ny = x + dx, y + dy
-        if 0 <= nx < cols and 0 <= ny < rows and board[ny][nx] == -1:
+        if 0 <= nx < cols and 0 <= ny < rows and board[nx][ny] == -1:
             return True
     return False
 
 def evaluate_open_area(board, pos):
     visited = set()
     def dfs(x, y):
-        if (x, y) in visited or not (0 <= x < 12 and 0 <= y < 12) or board[y][x] != 0:
+        if (x, y) in visited or not (0 <= x < 12 and 0 <= y < 12) or board[x][y] != 0:
             return 0
         visited.add((x, y))
         return 1 + dfs(x+1, y) + dfs(x-1, y) + dfs(x, y+1) + dfs(x, y-1)
