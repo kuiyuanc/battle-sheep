@@ -28,13 +28,13 @@ class GameState:
                         if step_count > 0:
                             for split_group_count in range(1, self.sheepStat[x][y]):
                                 valid_moves.append(((x, y), split_group_count, direction, step_count))
-        print("Valid moves: \n", valid_moves)
+        # print("Valid moves: \n", valid_moves)
         return valid_moves
     
-    def is_valid_direction(self, y, x, direction):
-        dx, dy = {1: (-1, -1), 2: ( 0,-1), 3: ( 1,-1),
-                  4: (-1,  0), 5: ( 0, 0), 6: ( 1, 0),
-                  7: (-1,  1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
+    def is_valid_direction(self, x, y, direction):
+        dx, dy = {1: (-1,-1), 2: ( 0,-1), 3: ( 1,-1),
+                  4: (-1, 0), 5: ( 0, 0), 6: ( 1, 0),
+                  7: (-1, 1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
         nx, ny = x + dx, y + dy
 
         # First step must be within bounds and unoccupied
@@ -61,7 +61,7 @@ class GameState:
         #    return False  # If the move isn't valid, return False
         
         # Calculate the new position for the split group of sheep
-        new_y, new_x = self.calculate_new_position(x, y, direction, step_count)
+        new_x, new_y = self.calculate_new_position(x, y, direction, step_count)
         
         # Update sheepStat for the new and original positions
         self.sheepStat[new_x][new_y] = split_group_count
@@ -70,9 +70,9 @@ class GameState:
         return True  # Return True to indicate the move was successfully made
     
     def calculate_new_position(self, x, y, direction, step_count):
-        dx, dy = {1: (-1, -1), 2: ( 0,-1), 3: ( 1,-1),
-                  4: (-1,  0), 5: ( 0, 0), 6: ( 1, 0),
-                  7: (-1,  1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
+        dx, dy = {1: (-1,-1), 2: ( 0,-1), 3: ( 1,-1),
+                  4: (-1, 0), 5: ( 0, 0), 6: ( 1, 0),
+                  7: (-1, 1), 8: ( 0, 1), 9: ( 1, 1)}[direction]
         
         nx, ny = x, y
         # Keep moving in the direction until an obstacle is reached or edge of board
@@ -174,7 +174,7 @@ class MCTSNode:
 
     
 
-# Identofy the edge position of the board, for the initial position
+# Identify the edge position of the board, for the initial position
 def find_edge_pos(board):
     edge_pos = []
     rows, cols = board.shape
@@ -228,6 +228,8 @@ def run_MCTS(root_state, iterations):
     return max(root_node.children, key=lambda x: x.wins / x.visits if x.visits > 0 else float('inf')).move
 
 
+
+
 '''
     選擇起始位置
     選擇範圍僅限場地邊緣(至少一個方向為牆)
@@ -276,12 +278,12 @@ def InitPos(mapStat):
             7 8 9
 '''
 def GetStep(playerID, mapStat, sheepStat):
-    print("mapStat: \n", mapStat)
-    print("sheepStat: \n", sheepStat)
+    # print("mapStat: \n", mapStat)
+    # print("sheepStat: \n", sheepStat)
     current_state = GameState(mapStat, sheepStat, playerID, playerID)
-    best_move = run_MCTS(current_state, 700)
-    print(f"Current state: {best_move}")
-    time.sleep(1)
+    best_move = run_MCTS(current_state, 1000)
+    # print(f"Current state: {best_move}")
+    # time.sleep(1)
     return best_move
 
 
