@@ -1,6 +1,7 @@
 import random
 
 import STcpClient
+from MinMax import MinMax
 
 
 def GetLegalInitPos(mapStat):
@@ -50,12 +51,8 @@ def InitPos(mapStat):
 
 
 def GetStep(playerID, mapStat, sheepStat):
-    step = [(0, 0), 0, 1]
-    '''
-    Write your code here
-
-    '''
-    return step
+    depth, heuristic, exploration = 25, "team", "mean"
+    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, exploration)
 
 
 # player initial
