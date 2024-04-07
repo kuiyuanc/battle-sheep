@@ -1,13 +1,13 @@
 @REM Put this file in root directory of this repo
 @REM This file wraps your source code and run it
 
-@REM Usage: ./build.bat <executable-name-1>=Model_1 <game-setting>=1 <source-code-name-1>=Sample <agent-to-replace>=1
+@REM Usage: ./build.bat <executable-name-1=Model_1> <game-setting=1> <source-code-name-1=Sample> <agent-to-replace-1=1>
 @REM To pass latter parameters, the former parameters should all be passed because they are positional arguments
 
 @REM Explanation:
 @REM 1. Wrap your source code 'Sample.py' and store the executable 'Model_1.exe' into bin
 @REM 2. Fix content of 'input.txt' & 'STcpClient.py' for running 'AI_game.exe' ( Replace sample/Sample_1.exe in game play )
-@REM 3. Run 'AI_game.exe'
+@REM 3. Run 'AI_game.exe' with assigned game setting ( default: 1 )
 
 @cls
 @echo off

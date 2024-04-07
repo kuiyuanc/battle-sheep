@@ -1,6 +1,10 @@
 @REM Put this file in root directory of this repo
 @REM This file is for fast running "after" running build.bat
+
 @REM Usage: ./run.bat <game-setting=1>
+
+@REM Explanation:
+@REM 1. Run 'AI_game.exe' with assigned game setting ( default: 1 )
 
 @cls
 @echo off
