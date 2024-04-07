@@ -10,7 +10,7 @@ infoServer = ["localhost", 8887]
 '''
     *   請將 idTeam 改成組別    *
 '''
-idTeam = 12
+idTeam = 1
 
 
 def _Connect(ip, port):
