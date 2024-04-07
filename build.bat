@@ -1,7 +1,7 @@
 @REM Put this file in root directory of this repo
 @REM This file wraps your source code and run it
 
-@REM Usage: ./build.bat <executable-name-1>=target <game-setting>=1 <source-code-name-1>=Sample <agent-to-replace>=1
+@REM Usage: ./build.bat <executable-name-1>=Model_1 <game-setting>=1 <source-code-name-1>=Sample <agent-to-replace>=1
 @REM To pass latter parameters, the former parameters should all be passed because they are positional arguments
 
 @REM Explanation:
