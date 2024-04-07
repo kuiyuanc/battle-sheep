@@ -1,6 +1,6 @@
 @REM Put this file in root directory of this repo
 @REM This file is for fast running "after" running build.bat
-@REM Usage: ./run.bat
+@REM Usage: ./run.bat or ./run.bat
 
 @cls
 @echo off
