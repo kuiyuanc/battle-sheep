@@ -49,7 +49,7 @@ class MinMaxNode:
          - Select the strategy function in GetStep
          - Set the fraction in GetStep
         '''
-        return self.strategies[self.strategy](self.upperbound) if self.strategy == "mcts" else self.strategies[self.strategy]()
+        return self.strategies[self.strategy]()
 
     def GetNextState(self, step):
         next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
