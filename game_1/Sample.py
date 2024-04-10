@@ -81,24 +81,27 @@ class MinMaxNode:
         return self._GetTeamScore() - sum(self._GetPlayerScore(player) for player in set(range(1, NUM_PLAYER + 1)) - self.teammate)
 
     def _GetTeamScoreWithWinnerBonus(self, *, grouped=False):
+        is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScore(player) for player in range(1, NUM_PLAYER + 1)]
         team_score = sum(score[player] for player in self.teammate)
         is_winner = sum(score) - team_score < team_score if grouped else team_score == max(score)
-        return team_score + (self.WINNER_BONUS if is_winner else 0)
+        return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0)
 
     def _GetTeamScoreDifferenceWithWinnerBonus(self, *, grouped=False):
+        is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScore(player) for player in range(1, NUM_PLAYER + 1)]
         team_score = sum(score[player] for player in self.teammate)
         opponent_score = sum(score) - team_score
         is_winner = opponent_score < team_score if grouped else team_score == max(score)
-        return team_score + (self.WINNER_BONUS if is_winner else 0) - opponent_score
+        return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0) - opponent_score
 
     def _GetTeamScoreWithWinnerBonusAndStupidPunish(self, *, grouped=False):
+        is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScoreWithStupidPunish(player) for player in range(1, NUM_PLAYER + 1)]
         team_score = sum(score[player] for player in self.teammate)
         opponent_score = sum(score) - team_score
         is_winner = opponent_score < team_score if grouped else team_score == max(score)
-        return team_score + (self.WINNER_BONUS if is_winner else 0) - opponent_score
+        return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0) - opponent_score
 
     '''
 
