@@ -168,11 +168,11 @@ def MinMax(playerID, mapStat, sheepStat, depth, heuristic, exploration) -> list 
 
 
 def GetLegalInitPos(mapStat):
-    def AtBoundary(i, j):
-        return i == 0 or i == len(mapStat) - 1 or j == 0 or j == len(mapStat) - 1 or \
-            mapStat[i][j - 1] == -1 or mapStat[i][j + 1] == -1 or mapStat[i - 1][j] == -1 or mapStat[i + 1][j] == -1
+    def AtBoundary(x, y):
+        return x == 0 or x == len(mapStat) - 1 or y == 0 or y == len(mapStat) - 1 or \
+            mapStat[x][y - 1] == -1 or mapStat[x][y + 1] == -1 or mapStat[x - 1][y] == -1 or mapStat[x + 1][y] == -1
 
-    return [[i, j] for i in range(len(mapStat)) for j in range(len(mapStat)) if mapStat[i][j] == 0 and AtBoundary(i, j)]
+    return [[x, y] for x in range(len(mapStat)) for y in range(len(mapStat)) if mapStat[x][y] == 0 and AtBoundary(x, y)]
 
 
 '''
