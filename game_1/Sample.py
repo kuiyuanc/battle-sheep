@@ -175,6 +175,33 @@ def GetLegalInitPos(mapStat):
     return [[x, y] for x in range(len(mapStat)) for y in range(len(mapStat)) if mapStat[x][y] == 0 and AtBoundary(x, y)]
 
 
+def GetRandomInitPos(mapStat):
+    return random.choice(GetLegalInitPos(mapStat))
+
+
+def GetWidestInitPos(mapStat):
+    legal_pos = GetLegalInitPos(mapStat)
+    scores = [sum(GetDistanceToBoundary(mapStat, x, y, dx, dy) for dx, dy in DIRECTION.values()) for x, y in legal_pos]
+    return random.choice([pos for score, pos in zip(scores, legal_pos) if score == max(scores)])
+
+
+def GetMeanInitPos(mapStat):
+    legal_pos = GetLegalInitPos(mapStat)
+    scores = []
+    for x, y in legal_pos:
+        distance = [GetDistanceToBoundary(mapStat, x, y, dx, dy) for dx, dy in DIRECTION.values()]
+        short = len([i for i in distance if i <= 3])
+        scores.append((4 - short) * (short - 4) * 10 + sum(i for i in distance if i > 3) / (8 - short))
+    return random.choice([pos for score, pos in zip(scores, legal_pos) if score == max(scores)])
+
+
+def GetDistanceToBoundary(mapStat, x, y, dx, dy):
+    distance = 0
+    while 0 <= x + dx < len(mapStat) and 0 <= y + dy < len(mapStat) and mapStat[x + dx][y + dy] == 0:
+        x, y, distance = x + dx, y + dy, distance + 1
+    return distance
+
+
 '''
     選擇起始位置
     選擇範圍僅限場地邊緣(至少一個方向為牆)
@@ -185,12 +212,9 @@ def GetLegalInitPos(mapStat):
 '''
 
 
-def InitPos(mapStat):
-    # get legal positions
-    legal_pos = GetLegalInitPos(mapStat)
-
-    # choose randomly
-    return random.choice(legal_pos)
+def InitPos(mapStat, strategy="random"):
+    strategies = {"random": GetRandomInitPos, "widest": GetWidestInitPos, "mean": GetMeanInitPos}
+    return strategies[strategy](mapStat)
 
 
 '''
