@@ -64,6 +64,7 @@ class GameState:
         # Calculate the new position for the split group of sheep
         new_x, new_y = self.calculate_new_position(x, y, direction, step_count)
         
+        self.board[new_x][new_y] = self.next_player_turn
         # Update sheepStat for the new and original positions
         self.sheepStat[new_x][new_y] = split_group_count
         self.sheepStat[x][y] -= split_group_count
@@ -127,19 +128,20 @@ class MCTSNode:
         self.visits = 0
     
     def select(self):
+        unvisited_children = [child for child in self.children if child.visits == 0]
+        if unvisited_children:
+            return random.choice(unvisited_children)
+
         best_score = float('-inf')
         best_child = None
         for child in self.children:
-            if child.visits == 0:
-                return child  # Return immediately if the child hasn't been visited yet, promoting exploration
-            else:
-                # Compute the UCB1 score for the child
-                score = child.wins / child.visits + math.sqrt(2 * math.log(self.visits) / child.visits)
-                if score > best_score:
-                    best_score = score
-                    best_child = child
+            # Compute the UCB1 score for the child
+            score = child.wins / child.visits + math.sqrt(2 * math.log(self.visits) / child.visits)
+            if score > best_score:
+                best_score = score
+                best_child = child
         return best_child
-
+        
     def expand(self):
         valid_moves = self.game_state.get_valid_moves()
         for move in valid_moves:
@@ -313,7 +315,7 @@ def GetStep(playerID, mapStat, sheepStat):
     # print("mapStat: \n", mapStat)
     # print("sheepStat: \n", sheepStat)
     current_state = GameState(mapStat, sheepStat, playerID, playerID)
-    best_move = run_MCTS(current_state, 1000)
+    best_move = run_MCTS(current_state, 1200)
     # print(f"Current state: {best_move}")
     # time.sleep(1)
     return best_move
