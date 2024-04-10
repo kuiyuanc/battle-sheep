@@ -52,6 +52,7 @@ pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
 @REM pipenv run pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
 
 del *.spec
+rmdir /s /q build
 
 echo Running game...
 start AI_game.exe
