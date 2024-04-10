@@ -7,10 +7,11 @@ import STcpClient
 
 NUM_PLAYER = 4
 DIRECTION = {1: (-1, -1), 2: (0, -1), 3: (1, -1), 4: (-1, 0), 6: (1, 0), 7: (-1, 1), 8: (0, 1), 9: (1, 1)}
+MCTS_UPPERBOUND = 100
 
 
 class MinMaxNode:
-    def __init__(self, turn, mapStat, sheepStat, heuristic="team", strategy="mean", fraction=0.1, teammate=None):
+    def __init__(self, turn, mapStat, sheepStat, heuristic="team", strategy="mean", upperbound=MCTS_UPPERBOUND, teammate=None):
         self.turn = turn
         self.map = np.array(mapStat, dtype=int)
         self.sheep = np.array(sheepStat, dtype=int)
@@ -29,7 +30,7 @@ class MinMaxNode:
             "mean-random": self._GetMeanAndTwoRandomWeightLegalStep,
             "mcts": self._GetRandomLegalStep
         }
-        self.fraction = fraction
+        self.upperbound = upperbound
         self.teammate = teammate | {turn} if teammate else {turn}
 
     def IsTeamTurn(self):
@@ -48,11 +49,11 @@ class MinMaxNode:
          - Select the strategy function in GetStep
          - Set the fraction in GetStep
         '''
-        return self.strategies[self.strategy](self.fraction) if self.strategy == "mcts" else self.strategies[self.strategy]()
+        return self.strategies[self.strategy](self.upperbound) if self.strategy == "mcts" else self.strategies[self.strategy]()
 
     def GetNextState(self, step):
         next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
-                          self.heuristic, self.strategy, self.fraction, self.teammate)
+                          self.heuristic, self.strategy, self.upperbound, self.teammate)
 
         pos, m, dir = step
         x, y = pos
@@ -130,9 +131,9 @@ class MinMaxNode:
                                 self.sheep[x][y] // 2,
                                 random.randint(math.ceil(self.sheep[x][y] / 2) + (self.sheep[x][y] % 2 == 0), self.sheep[x][y] - 1)}))
 
-    def _GetRandomLegalStep(self, fraction=0.1):
+    def _GetRandomLegalStep(self):
         legal_step = tuple([(x, y), m, dir] for x, y, dir in self._GetLegalPosAndDir() for m in range(1, self.sheep[x][y]))
-        return tuple(random.sample(legal_step, int(len(legal_step) * fraction))) if int(len(legal_step) * fraction) else legal_step
+        return tuple(random.sample(legal_step, self.upperbound)) if self.upperbound < len(legal_step) else legal_step
 
     '''
 
@@ -176,8 +177,8 @@ def MinMaxSearch(node: MinMaxNode, depth: int, alpha=-np.inf, beta=np.inf) -> fl
     return score
 
 
-def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, fraction, teammate) -> list | None:
-    root = MinMaxNode(playerID, mapStat, sheepStat, heuristic, strategy, fraction, teammate)
+def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, teammate) -> list | None:
+    root = MinMaxNode(playerID, mapStat, sheepStat, heuristic, strategy, upperbound, teammate)
     legal_step = root.GetLegalStep()
 
     if depth == 0 or not legal_step:
@@ -361,10 +362,10 @@ def GetStep(playerID, mapStat, sheepStat):
         - depth: depth of searching tree = 'depth' * NUM_PLAYERS
         - heuristic: {"team", "team-difference", "team-winner-bonus", "team-winner-bonus-difference"}
         - strategy: {"mean", "three-ramdom", "mean-extreme", "mean-random", "mcts"}
-        - fraction: the fraction of how many legal steps to select => a floating number in [0, 1]
+        - upperbound: the upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
-    depth, heuristic, strategy, fraction, teammate = 15, "team-winner-bonus", "mean-random", 0.1, None
-    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, fraction, teammate)
+    depth, heuristic, strategy, upperbound, teammate = 15, "team-winner-bonus", "mcts", 100, None
+    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, teammate)
 
 
 # player initial
