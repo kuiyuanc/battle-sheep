@@ -131,7 +131,7 @@ class MinMaxNode:
                                 random.randint(math.ceil(self.sheep[x][y] / 2) + (self.sheep[x][y] % 2 == 0), self.sheep[x][y] - 1)}))
 
     def _GetRandomLegalStep(self, fraction=0.1):
-        legal_step = tuple([(x, y), m, dir] for x, y, dir in self._GetLegalPosAndDir() for m in range(1, self.sheep[x][y] + 1))
+        legal_step = tuple([(x, y), m, dir] for x, y, dir in self._GetLegalPosAndDir() for m in range(1, self.sheep[x][y]))
         return tuple(random.sample(legal_step, int(len(legal_step) * fraction))) if int(len(legal_step) * fraction) else legal_step
 
     '''
