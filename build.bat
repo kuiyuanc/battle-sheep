@@ -42,14 +42,14 @@ if "%4"=="" (
 
 cd game_%game_setting%
 
+echo Pre-processing...
+py ../fix_input.py %agent1% %executable1%
+
 echo Wrapping source code...
 @REM Use the next line (stay unchanged) if you don't install pyinstaller in pipenv
 pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
 @REM Use the next line (comment the previous line & uncomment the next line) if you install pyinstaller in pipenv
 @REM pipenv run pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
-
-echo Pre-processing...
-py ../fix_input.py %agent1% %executable1%
 
 echo Running game...
 start AI_game.exe
