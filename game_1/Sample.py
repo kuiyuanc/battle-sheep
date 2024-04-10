@@ -10,48 +10,38 @@ DIRECTION = {1: (-1, -1), 2: (0, -1), 3: (1, -1), 4: (-1, 0), 6: (1, 0), 7: (-1,
 
 
 class MinMaxNode:
-    def __init__(self, turn, mapStat, sheepStat, heuristic="team", exploration="mean", teammate=None):
+    def __init__(self, turn, mapStat, sheepStat, heuristic="team", strategy="mean", teammate=None):
         self.turn = turn
         self.map = np.array(mapStat, dtype=int)
         self.sheep = np.array(sheepStat, dtype=int)
         self.heuristic = heuristic
-        self.exploration = exploration
+        self.heuristics = {
+            "team": self._GetTeamScore,
+            "team-difference": self._GetTeamScoreDifference,
+            "team-winner-bonus": self._GetTeamScoreWithWinnerBonus,
+            "team-difference-winner-bonus": self._GetTeamScoreDifferenceWithWinnerBonus
+        }
+        self.strategy = strategy
+        self.strategies = {
+            "mean": self._GetMeanWeightLegalStep,
+            "three-random": self._GetThreeRandomWeightLegalStep,
+            "mean-extreme": self._GetMeanAndTwoExtremeWeightLegalStep,
+            "mean-random": self._GetMeanAndTwoRandomWeightLegalStep
+        }
         self.teammate = teammate | {turn} if teammate else {turn}
 
     def IsTeamTurn(self):
         return self.turn in self.teammate
 
-    def GetScore(self, heuristic=None):
-        self.heuristic = heuristic if heuristic else self.heuristic
+    def GetScore(self):
+        return self.heuristics[self.heuristic]()
 
-        if self.heuristic == "team":
-            return self._GetTeamScore()
-        if self.heuristic == "team-difference":
-            return self._GetTeamScoreDifference()
-        if self.heuristic == "team-winner-bonus":
-            return self._GetTeamScoreWithWinnerBonus()
-        if self.heuristic == "team-difference-winner-bonus":
-            return self._GetTeamScoreDifferenceWithWinnerBonus()
-
-        return -1
-
-    def GetLegalStep(self, exploration=None):
-        self.exploration = exploration if exploration else self.exploration
-
-        if self.exploration == "mean":
-            return self._GetMeanWeightLegalStep()
-        if self.exploration == "three-random":
-            return self._GetThreeRandomWeightLegalStep()
-        if self.exploration == "mean-extreme":
-            return self._GetMeanAndTwoExtremeWeightLegalStep()
-        if self.exploration == "mean-random":
-            return self._GetMeanAndTwoRandomWeightLegalStep()
-
-        return ()
+    def GetLegalStep(self):
+        return self.strategies[self.strategy]()
 
     def GetNextState(self, step):
         next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
-                          self.heuristic, self.exploration, self.teammate)
+                          self.heuristic, self.strategy, self.teammate)
 
         pos, m, dir = step
         x, y = pos
@@ -212,7 +202,7 @@ def GetDistanceToBoundary(mapStat, x, y, dx, dy):
 '''
 
 
-def InitPos(mapStat, strategy="random"):
+def InitPos(mapStat, strategy="widest"):
     strategies = {"random": GetRandomInitPos, "widest": GetWidestInitPos, "mean": GetMeanInitPos}
     return strategies[strategy](mapStat)
 
@@ -238,8 +228,8 @@ def InitPos(mapStat, strategy="random"):
 
 
 def GetStep(playerID, mapStat, sheepStat):
-    depth, heuristic, exploration = 25, "team", "mean-extreme"
-    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, exploration)
+    depth, heuristic, strategy = 15, "team-winner-bonus", "mean"
+    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy)
 
 
 # player initial
