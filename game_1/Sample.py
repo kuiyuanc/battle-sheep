@@ -20,7 +20,8 @@ class MinMaxNode:
             "team": self._GetTeamScore,
             "team-difference": self._GetTeamScoreDifference,
             "team-winner-bonus": self._GetTeamScoreWithWinnerBonus,
-            "team-difference-winner-bonus": self._GetTeamScoreDifferenceWithWinnerBonus
+            "team-difference-winner-bonus": self._GetTeamScoreDifferenceWithWinnerBonus,
+            "team-winner-bonus-stupid-punish": self._GetTeamScoreWithWinnerBonusAndStupidPunish
         }
         self.strategy = strategy
         self.strategies = {
@@ -91,6 +92,13 @@ class MinMaxNode:
         is_winner = opponent_score < team_score if grouped else team_score == max(score)
         return team_score + (self.WINNER_BONUS if is_winner else 0) - opponent_score
 
+    def _GetTeamScoreWithWinnerBonusAndStupidPunish(self, *, grouped=False):
+        score = [self._GetPlayerScoreWithStupidPunish(player) for player in range(1, NUM_PLAYER + 1)]
+        team_score = sum(score[player] for player in self.teammate)
+        opponent_score = sum(score) - team_score
+        is_winner = opponent_score < team_score if grouped else team_score == max(score)
+        return team_score + (self.WINNER_BONUS if is_winner else 0) - opponent_score
+
     '''
 
     Called by heuristic
@@ -99,6 +107,11 @@ class MinMaxNode:
 
     def _GetPlayerScore(self, player):
         return sum(self._GetArea(x, y, player)**1.25 for x in range(len(self.map)) for y in range(len(self.map)))
+
+    def _GetPlayerScoreWithStupidPunish(self, player):
+        punish = sum(1.1**(self.sheep[x][y] - 1) - 1 for x in range(len(self.map)) for y in range(len(self.map))
+                     if self.map[x][y] == player)
+        return self._GetPlayerScore(player) - punish
 
     def _GetArea(self, x, y, player):
         if x < 0 or x >= len(self.map) or y < 0 or y >= len(self.map) or self.map[x][y] != player:
