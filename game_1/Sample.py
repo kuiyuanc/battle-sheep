@@ -33,6 +33,13 @@ class MinMaxNode:
         }
         self.upperbound = upperbound
         self.teammate = teammate | {turn} if teammate else {turn}
+
+        '''
+        tuning parameters
+            - WINNER_BONUS: the bonus point for winning state
+            - PUNISH_BASE: the base in the punishment formula for leaving sheeps unable to move
+        '''
+
         self.WINNER_BONUS = 100
         self.PUNISH_BASE = 1.2
 
