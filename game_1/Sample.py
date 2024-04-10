@@ -191,7 +191,7 @@ def GetMeanInitPos(mapStat):
     for x, y in legal_pos:
         distance = [GetDistanceToBoundary(mapStat, x, y, dx, dy) for dx, dy in DIRECTION.values()]
         short = len([i for i in distance if i <= 3])
-        scores.append((4 - short) * (short - 4) * 10 + sum(i for i in distance if i > 3) / (8 - short))
+        scores.append((4 - short) * (short - 4) * 10 + (0 if short == 8 else sum(i for i in distance if i > 3) / (8 - short)))
     return random.choice([pos for score, pos in zip(scores, legal_pos) if score == max(scores)])
 
 
