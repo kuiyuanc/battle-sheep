@@ -7,7 +7,7 @@ import STcpClient
 
 NUM_PLAYER = 4
 DIRECTION = {1: (-1, -1), 2: (0, -1), 3: (1, -1), 4: (-1, 0), 6: (1, 0), 7: (-1, 1), 8: (0, 1), 9: (1, 1)}
-MCTS_UPPERBOUND = 100
+MCTS_UPPERBOUND = 20
 
 
 class MinMaxNode:
@@ -322,7 +322,7 @@ def GetReachability(mapStat):
 '''
 
 
-def InitPos(mapStat, strategy="widest"):
+def InitPos(mapStat):
     '''
     tuning parameters
         - strategy: {"random", "widest", "mean", "reachability"}
@@ -333,6 +333,7 @@ def InitPos(mapStat, strategy="widest"):
         "mean": GetMeanInitPos,
         "reachability": GetReachability
     }
+    strategy = "reachability"
     return strategies[strategy](mapStat)
 
 
@@ -364,7 +365,7 @@ def GetStep(playerID, mapStat, sheepStat):
         - strategy: {"mean", "three-ramdom", "mean-extreme", "mean-random", "mcts"}
         - upperbound: the upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
-    depth, heuristic, strategy, upperbound, teammate = 15, "team-winner-bonus", "mcts", 100, None
+    depth, heuristic, strategy, upperbound, teammate = 15, "team-winner-bonus", "mcts", 20, None
     return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, teammate)
 
 
