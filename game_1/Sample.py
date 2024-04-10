@@ -34,6 +34,7 @@ class MinMaxNode:
         self.upperbound = upperbound
         self.teammate = teammate | {turn} if teammate else {turn}
         self.WINNER_BONUS = 100
+        self.PUNISH_BASE = 1.2
 
     def IsTeamTurn(self):
         return self.turn in self.teammate
@@ -109,7 +110,7 @@ class MinMaxNode:
         return sum(self._GetArea(x, y, player)**1.25 for x in range(len(self.map)) for y in range(len(self.map)))
 
     def _GetPlayerScoreWithStupidPunish(self, player):
-        punish = sum(1.1**(self.sheep[x][y] - 1) - 1 for x in range(len(self.map)) for y in range(len(self.map))
+        punish = sum(self.PUNISH_BASE**(self.sheep[x][y] - 1) - 1 for x in range(len(self.map)) for y in range(len(self.map))
                      if self.map[x][y] == player)
         return self._GetPlayerScore(player) - punish
 
