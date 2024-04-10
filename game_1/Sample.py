@@ -7,11 +7,11 @@ import STcpClient
 
 NUM_PLAYER = 4
 DIRECTION = {1: (-1, -1), 2: (0, -1), 3: (1, -1), 4: (-1, 0), 6: (1, 0), 7: (-1, 1), 8: (0, 1), 9: (1, 1)}
-MCTS_UPPERBOUND = 20
 
 
 class MinMaxNode:
-    def __init__(self, turn, mapStat, sheepStat, heuristic="team", strategy="mean", upperbound=MCTS_UPPERBOUND, teammate=None):
+    def __init__(self, turn, mapStat, sheepStat, heuristic: str, strategy: str, upperbound: int,
+                 breadthEvolveVelocity: float, breadthEvolveAcceleration: float, teammate=None):
         self.turn = turn
         self.map = np.array(mapStat, dtype=int)
         self.sheep = np.array(sheepStat, dtype=int)
@@ -32,6 +32,8 @@ class MinMaxNode:
             "mcts": self._GetRandomLegalStep
         }
         self.upperbound = upperbound
+        self.breadth_evolve_velocity = breadthEvolveVelocity
+        self.breadth_evolve_acceleration = breadthEvolveAcceleration
         self.teammate = teammate | {turn} if teammate else {turn}
 
         '''
@@ -57,13 +59,14 @@ class MinMaxNode:
         '''
         Get the legal step of current state based on the selected strategy function
          - Select the strategy function in GetStep
-         - Set the fraction in GetStep
         '''
         return self.strategies[self.strategy]()
 
     def GetNextState(self, step):
         next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
-                          self.heuristic, self.strategy, self.upperbound, self.teammate)
+                          self.heuristic, self.strategy, int(self.upperbound * self.breadth_evolve_velocity),
+                          self.breadth_evolve_velocity + self.breadth_evolve_acceleration,
+                          self.breadth_evolve_acceleration, self.teammate)
 
         pos, m, dir = step
         x, y = pos
@@ -202,8 +205,10 @@ def MinMaxSearch(node: MinMaxNode, depth: int, alpha=-np.inf, beta=np.inf) -> fl
     return score
 
 
-def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, teammate) -> list | None:
-    root = MinMaxNode(playerID, mapStat, sheepStat, heuristic, strategy, upperbound, teammate)
+def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, breadth_evolve_velocity,
+           breadthEvolveAcceleration, teammate) -> list | None:
+    root = MinMaxNode(playerID, mapStat, sheepStat, heuristic, strategy, upperbound, breadth_evolve_velocity,
+                      breadthEvolveAcceleration, teammate)
     legal_step = root.GetLegalStep()
 
     if depth == 0 or not legal_step:
@@ -395,9 +400,22 @@ def GetStep(playerID, mapStat, sheepStat):
         }
         - strategy: {"mean", "three-ramdom", "mean-extreme", "mean-random", "mcts"}
         - upperbound: the upper bound of how many legal steps are sampled in a layer of MCTS searching tree
+        - breadth_evolve_velocity: the velocity of the growth of upperbound between layers of MCTS searching tree
+        - breadth_evolve_acceleration: the acceleration of the growth of upperbound between layers of MCTS searching tree
+            e.g. 18 samples are sampled in the 1st layer of MCTS searching tree,
+                 18 <= int(18 * 30 / 29) samples are sampled in the 2nd layer of MCTS searching tree
+                 19 <= int(18 * (30 / 29 + 1 / 29)) samples are sampled in the 3rd layer of MCTS searching tree
+                 20 <= int(19 * (31 / 29 + 1 / 29)) samples are sampled in the 4th layer of MCTS searching tree
     '''
-    depth, heuristic, strategy, upperbound, teammate = 15, "team-winner-bonus", "mcts", 20, None
-    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, teammate)
+    depth = 15
+    heuristic = "team-winner-bonus-stupid-punish"
+    strategy = "mcts"
+    upperbound = 18
+    breadth_evolve_velocity = 30 / 29
+    breadth_evolve_acceleration = 1 / 29
+    teammate = None
+    return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, breadth_evolve_velocity,
+                  breadth_evolve_acceleration, teammate)
 
 
 # player initial
