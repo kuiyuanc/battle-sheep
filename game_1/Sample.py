@@ -375,7 +375,13 @@ def GetStep(playerID, mapStat, sheepStat):
     '''
     tuning parameters
         - depth: depth of searching tree = 'depth' * NUM_PLAYERS
-        - heuristic: {"team", "team-difference", "team-winner-bonus", "team-winner-bonus-difference"}
+        - heuristic: {
+            "team",
+            "team-difference",
+            "team-winner-bonus",
+            "team-winner-bonus-difference",
+            "team-winner-bonus-stupid-punish"
+        }
         - strategy: {"mean", "three-ramdom", "mean-extreme", "mean-random", "mcts"}
         - upperbound: the upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
