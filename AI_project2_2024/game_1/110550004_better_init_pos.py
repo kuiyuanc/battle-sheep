@@ -224,7 +224,7 @@ def evaluate_position_reachability(board, pos):
 
         evaluation *= count
     
-    standard = 1 * (3**4) * (6**3)
+    standard = 1 * (4**4) * (7**3)
     point = 0
 
     if evaluation < standard:
