@@ -51,5 +51,7 @@ pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
 @REM Use the next line (comment the previous line & uncomment the next line) if you install pyinstaller in pipenv
 @REM pipenv run pyinstaller --onefile --dist bin --name %executable1%.exe %source1%.py
 
+rm *.spec
+
 echo Running game...
 start AI_game.exe
