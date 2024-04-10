@@ -231,6 +231,86 @@ def GetDistanceToBoundary(mapStat, x, y, dx, dy):
     return distance
 
 
+def find_edge_pos(board):
+    edge_pos = []
+    rows, cols = board.shape
+    for x in range(cols):
+        for y in range(rows):
+            if board[x][y] == 0:  # The chosen position must be empty
+                if x == 0 or x == rows - 1 or y == 0 or y == cols - 1 or is_adjacent_to_obstacle(board, x, y, rows, cols):  # Check if it's on the boundary or orthogonally adjacent to an obstacle
+                    edge_pos.append([x, y])
+    return edge_pos
+
+
+def is_adjacent_to_obstacle(board, x, y, rows, cols):
+    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < cols and 0 <= ny < rows and board[nx][ny] == -1:
+            return True
+    return False
+
+
+def evaluate_position_reachability(board, pos):
+    x, y = pos[0], pos[1]
+    evaluation = 1
+    for direction in range(1, 9 + 1):
+        if direction == 5:
+            continue
+
+        dx, dy = {1: (-1, -1), 2: (0, -1), 3: (1, -1),
+                  4: (-1, 0),             6: (1, 0),
+                  7: (-1, 1), 8: (0, 1), 9: (1, 1)}[direction]
+        nx, ny = x + dx, y + dy
+        # print(f"direction: {direction}")
+        count = 1
+        # First step must be within bounds and unoccupied
+        if not (0 <= nx < 12 and 0 <= ny < 12 and board[nx][ny] == 0):
+            continue
+
+        # Further steps: check until hitting an obstacle, another sheep, or the edge
+        while 0 <= nx < 12 and 0 <= ny < 12:
+            count += 1
+            nx += dx
+            ny += dy
+            if not (0 <= nx < 12 and 0 <= ny < 12):  # Stop if next step goes out of bounds
+                break
+            if board[nx][ny] != 0:  # Stop if next step hits an obstacle or sheep
+                break
+
+        evaluation *= count
+
+    standard = 1 * (4**4) * (7**3)
+    point = 0
+
+    if evaluation < standard:
+        point = evaluation / standard
+    else:
+        point = standard / evaluation
+
+    print(f"{pos}: {point: .5f}")
+    return point
+
+
+def GetReachability(mapStat):
+    print("mapStat: \n", mapStat)
+    print("Initialized position")
+    board = np.array(mapStat)
+    edge_pos = find_edge_pos(board)
+
+    best_pos = None
+    best_point = -1
+    print(len(edge_pos))
+    for pos in edge_pos:
+        point = evaluate_position_reachability(board, pos)
+
+        if point > best_point:
+            best_pos = pos
+            best_point = point
+
+    print("")
+    return best_pos if best_pos else [0, 0]
+
+
 '''
     選擇起始位置
     選擇範圍僅限場地邊緣(至少一個方向為牆)
@@ -242,7 +322,16 @@ def GetDistanceToBoundary(mapStat, x, y, dx, dy):
 
 
 def InitPos(mapStat, strategy="widest"):
-    strategies = {"random": GetRandomInitPos, "widest": GetWidestInitPos, "mean": GetMeanInitPos}
+    '''
+    tuning parameters
+        - strategy: {"random", "widest", "mean", "reachability"}
+    '''
+    strategies = {
+        "random": GetRandomInitPos,
+        "widest": GetWidestInitPos,
+        "mean": GetMeanInitPos,
+        "reachability": GetReachability
+    }
     return strategies[strategy](mapStat)
 
 
