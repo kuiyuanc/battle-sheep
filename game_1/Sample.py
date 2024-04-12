@@ -388,6 +388,11 @@ def InitPos(mapStat):
 '''
 
 
+class StaticVariable:
+    count = 0
+    upperbound = 16
+
+
 def GetStep(playerID, mapStat, sheepStat):
     '''
     tuning parameters
@@ -408,13 +413,19 @@ def GetStep(playerID, mapStat, sheepStat):
                  19 <= int(18 * (30 / 29 + 1 / 29)) samples are sampled in the 3rd layer of MCTS searching tree
                  20 <= int(19 * (31 / 29 + 1 / 29)) samples are sampled in the 4th layer of MCTS searching tree
     '''
+    StaticVariable.count += 1
+
     depth = NUM_SHEEP
     heuristic = "team-winner-bonus-stupid-punish"
     strategy = "mcts"
-    upperbound = 18
-    breadth_evolve_velocity = 30 / 29
-    breadth_evolve_acceleration = 1 / 29
+    upperbound = StaticVariable.upperbound
+    breadth_evolve_velocity = 61 / 60
+    breadth_evolve_acceleration = 0
     teammate = None
+
+    n = ((StaticVariable.upperbound)**(depth * NUM_PLAYER + 1) - 1) / (StaticVariable.upperbound - 1)
+    StaticVariable.upperbound = int(((1 - n) / StaticVariable.upperbound + n)**(1 / (depth * NUM_PLAYER - 1)))
+
     return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, breadth_evolve_velocity,
                   breadth_evolve_acceleration, teammate)
 
