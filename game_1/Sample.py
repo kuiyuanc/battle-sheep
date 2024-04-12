@@ -6,6 +6,7 @@ import numpy as np
 import STcpClient
 
 NUM_PLAYER = 4
+NUM_SHEEP = 16
 DIRECTION = {1: (-1, -1), 2: (0, -1), 3: (1, -1), 4: (-1, 0), 6: (1, 0), 7: (-1, 1), 8: (0, 1), 9: (1, 1)}
 
 
@@ -407,7 +408,7 @@ def GetStep(playerID, mapStat, sheepStat):
                  19 <= int(18 * (30 / 29 + 1 / 29)) samples are sampled in the 3rd layer of MCTS searching tree
                  20 <= int(19 * (31 / 29 + 1 / 29)) samples are sampled in the 4th layer of MCTS searching tree
     '''
-    depth = 15
+    depth = NUM_SHEEP
     heuristic = "team-winner-bonus-stupid-punish"
     strategy = "mcts"
     upperbound = 18
