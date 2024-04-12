@@ -389,6 +389,10 @@ def InitPos(mapStat):
 
 
 class StaticVariable:
+    '''
+    tuning parameters:
+        - upperbound: the initial upper bound of how many legal steps are sampled in a layer of MCTS searching tree
+    '''
     count = 0
     upperbound = 16
 
