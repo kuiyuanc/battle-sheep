@@ -181,7 +181,7 @@ class MinMaxNode:
 
         # Iterate over legal positions and directions
         for x, y, dir in legal_step:
-            steps_for_pos = [(x, y, m, dir) for m in range(1, self.sheep[x][y])]
+            steps_for_pos = tuple([(x, y), m, dir] for m in range(1, self.sheep[x][y]))
             # Check if the position has already been selected
             if (x, y) not in selected_positions:
                 # If not selected, choose one step randomly for the position
@@ -201,7 +201,7 @@ class MinMaxNode:
             # Choose additional steps randomly from the remaining legal steps
             selected_steps.extend(random.sample(remaining_steps, min(len(remaining_steps), additional_steps)))
 
-        return tuple(selected_steps) if self.upperbound < len(legal_step) else legal_step
+        return tuple(selected_steps)
 
     '''
 
