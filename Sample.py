@@ -69,7 +69,8 @@ class MinMaxNode:
                           self.breadth_evolve_velocity + self.breadth_evolve_acceleration,
                           self.breadth_evolve_acceleration, self.teammate)
 
-        [x, y], m, dir = step
+        pos, m, dir = step
+        x, y = pos
         target_x, target_y = next._GetTargetCell(x, y, DIRECTION[dir][0], DIRECTION[dir][1])
 
         next.map[target_x][target_y] = self.turn
@@ -124,7 +125,7 @@ class MinMaxNode:
 
     def _GetPlayerScoreWithStupidPunish(self, player):
         punish = sum(self.PUNISH_BASE**(self.sheep[x][y] - 1) - 1 for x in range(len(self.map)) for y in range(len(self.map))
-                     if self.map[x][y] == player and not self._is_adjacent_to_free_space(x,y))
+                     if self.map[x][y] == player and not self._is_adjacent_to_free_space(x, y))
         return self._GetPlayerScore(player) - punish
 
     def _GetArea(self, x, y, player):
@@ -262,7 +263,7 @@ def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound,
         if score > beta:
             break
         alpha = max(alpha, score)
-        print("step: ", step, "score: ", next_score)
+        # print("step: ", step, "score: ", next_score)
     return selected_step
 
 
@@ -357,19 +358,19 @@ def evaluate_position_reachability(board, pos):
     else:
         point = standard / evaluation
 
-    print(f"{pos}: {point: .5f}")
+    # print(f"{pos}: {point: .5f}")
     return point
 
 
 def GetReachability(mapStat):
-    print("mapStat: \n", mapStat)
-    print("Initialized position")
+    # print("mapStat: \n", mapStat)
+    # print("Initialized position")
     board = np.array(mapStat)
     edge_pos = find_edge_pos(board)
 
     best_pos = None
     best_point = -1
-    print(len(edge_pos))
+    # print(len(edge_pos))
     for pos in edge_pos:
         point = evaluate_position_reachability(board, pos)
 
@@ -377,7 +378,7 @@ def GetReachability(mapStat):
             best_pos = pos
             best_point = point
 
-    print("")
+    # print("")
     return best_pos if best_pos else [0, 0]
 
 
@@ -432,7 +433,7 @@ class StaticVariable:
         - upperbound: the initial upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
     count = 0
-    upperbound = 10
+    upperbound = 6
 
 
 def GetStep(playerID, mapStat, sheepStat):
@@ -457,16 +458,16 @@ def GetStep(playerID, mapStat, sheepStat):
     '''
     StaticVariable.count += 1
 
-    depth = NUM_SHEEP
+    depth = 1
     heuristic = "team-winner-bonus-stupid-punish"
     strategy = "mcts"
     upperbound = StaticVariable.upperbound
-    breadth_evolve_velocity = 61 / 60
+    breadth_evolve_velocity = 1
     breadth_evolve_acceleration = 0
     teammate = None
 
-    n = ((StaticVariable.upperbound)**(depth * NUM_PLAYER + 1) - 1) / (StaticVariable.upperbound - 1)
-    StaticVariable.upperbound = int(((1 - n) / StaticVariable.upperbound + n)**(1 / (depth * NUM_PLAYER - 1)))
+    # n = ((StaticVariable.upperbound)**(depth * NUM_PLAYER + 1) - 1) / (StaticVariable.upperbound - 1)
+    # StaticVariable.upperbound = int(((1 - n) / StaticVariable.upperbound + n)**(1 / (depth * NUM_PLAYER - 1)))
 
     return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, breadth_evolve_velocity,
                   breadth_evolve_acceleration, teammate)
