@@ -69,8 +69,7 @@ class MinMaxNode:
                           self.breadth_evolve_velocity + self.breadth_evolve_acceleration,
                           self.breadth_evolve_acceleration, self.teammate)
 
-        pos, m, dir = step
-        x, y = pos
+        [x, y], m, dir = step
         target_x, target_y = next._GetTargetCell(x, y, DIRECTION[dir][0], DIRECTION[dir][1])
 
         next.map[target_x][target_y] = self.turn
