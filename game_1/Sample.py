@@ -30,7 +30,7 @@ class MinMaxNode:
             "three-random": self._GetThreeRandomWeightLegalStep,
             "mean-extreme": self._GetMeanAndTwoExtremeWeightLegalStep,
             "mean-random": self._GetMeanAndTwoRandomWeightLegalStep,
-            "mcts": self._GetRandomLegalStep
+            "mcts": self._GetRandomLegalStepOneForAllpos
         }
         self.upperbound = upperbound
         self.breadth_evolve_velocity = breadthEvolveVelocity
@@ -64,7 +64,7 @@ class MinMaxNode:
         return self.strategies[self.strategy]()
 
     def GetNextState(self, step):
-        next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
+        next = MinMaxNode(self.turn + 1 if self.turn < NUM_PLAYER else 1, self.map.copy(), self.sheep.copy(),
                           self.heuristic, self.strategy, int(self.upperbound * self.breadth_evolve_velocity),
                           self.breadth_evolve_velocity + self.breadth_evolve_acceleration,
                           self.breadth_evolve_acceleration, self.teammate)
@@ -94,14 +94,14 @@ class MinMaxNode:
     def _GetTeamScoreWithWinnerBonus(self, *, grouped=False):
         is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScore(player) for player in range(1, NUM_PLAYER + 1)]
-        team_score = sum(score[player] for player in self.teammate)
+        team_score = sum(score[player - 1] for player in self.teammate)
         is_winner = sum(score) - team_score < team_score if grouped else team_score == max(score)
         return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0)
 
     def _GetTeamScoreDifferenceWithWinnerBonus(self, *, grouped=False):
         is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScore(player) for player in range(1, NUM_PLAYER + 1)]
-        team_score = sum(score[player] for player in self.teammate)
+        team_score = sum(score[player - 1] for player in self.teammate)
         opponent_score = sum(score) - team_score
         is_winner = opponent_score < team_score if grouped else team_score == max(score)
         return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0) - opponent_score
@@ -109,7 +109,7 @@ class MinMaxNode:
     def _GetTeamScoreWithWinnerBonusAndStupidPunish(self, *, grouped=False):
         is_terminal = self.GetLegalStep()
         score = [self._GetPlayerScoreWithStupidPunish(player) for player in range(1, NUM_PLAYER + 1)]
-        team_score = sum(score[player] for player in self.teammate)
+        team_score = sum(score[player - 1] for player in self.teammate)
         opponent_score = sum(score) - team_score
         is_winner = opponent_score < team_score if grouped else team_score == max(score)
         return team_score + (self.WINNER_BONUS if is_winner and is_terminal else 0) - opponent_score
@@ -125,7 +125,7 @@ class MinMaxNode:
 
     def _GetPlayerScoreWithStupidPunish(self, player):
         punish = sum(self.PUNISH_BASE**(self.sheep[x][y] - 1) - 1 for x in range(len(self.map)) for y in range(len(self.map))
-                     if self.map[x][y] == player)
+                     if self.map[x][y] == player and not self._is_adjacent_to_free_space(x, y))
         return self._GetPlayerScore(player) - punish
 
     def _GetArea(self, x, y, player):
@@ -135,6 +135,13 @@ class MinMaxNode:
         self.map[x][y] = -1
 
         return 1 + sum(self._GetArea(x + dx, y + dy, player) for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)))
+
+    def _is_adjacent_to_free_space(self, x, y):
+        for _, d in DIRECTION.items():
+            nx, ny = x + d[0], y + d[1]
+            if 0 <= nx < len(self.map) and 0 <= ny < len(self.map) and self.map[nx][ny] == 0:
+                return True
+        return False
 
     '''
 
@@ -163,6 +170,38 @@ class MinMaxNode:
     def _GetRandomLegalStep(self):
         legal_step = tuple([(x, y), m, dir] for x, y, dir in self._GetLegalPosAndDir() for m in range(1, self.sheep[x][y]))
         return tuple(random.sample(legal_step, self.upperbound)) if self.upperbound < len(legal_step) else legal_step
+
+    def _GetRandomLegalStepOneForAllpos(self):
+        legal_step = self._GetLegalPosAndDir()
+        selected_steps = []
+        remaining_steps = []
+
+        # Create a dictionary to keep track of selected positions
+        selected_positions = {}
+
+        # Iterate over legal positions and directions
+        for x, y, dir in legal_step:
+            steps_for_pos = tuple([(x, y), m, dir] for m in range(1, self.sheep[x][y]))
+            # Check if the position has already been selected
+            if (x, y) not in selected_positions:
+                # If not selected, choose one step randomly for the position
+                if steps_for_pos:
+                    selected_step = random.choice(steps_for_pos)
+                    selected_steps.append(selected_step)
+                    # Mark the position as selected
+                    selected_positions[(x, y)] = True
+                    remaining_steps.extend([step for step in steps_for_pos if step != selected_step])
+
+            else:
+                remaining_steps.extend(steps_for_pos)
+
+        # If there are more legal steps than the upper bound, choose additional steps randomly
+        if len(selected_steps) < self.upperbound:
+            additional_steps = self.upperbound - len(selected_steps)
+            # Choose additional steps randomly from the remaining legal steps
+            selected_steps.extend(random.sample(remaining_steps, min(len(remaining_steps), additional_steps)))
+
+        return tuple(selected_steps)
 
     '''
 
@@ -224,7 +263,7 @@ def MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound,
         if score > beta:
             break
         alpha = max(alpha, score)
-
+        # print("step: ", step, "score: ", next_score)
     return selected_step
 
 
@@ -319,19 +358,19 @@ def evaluate_position_reachability(board, pos):
     else:
         point = standard / evaluation
 
-    print(f"{pos}: {point: .5f}")
+    # print(f"{pos}: {point: .5f}")
     return point
 
 
 def GetReachability(mapStat):
-    print("mapStat: \n", mapStat)
-    print("Initialized position")
+    # print("mapStat: \n", mapStat)
+    # print("Initialized position")
     board = np.array(mapStat)
     edge_pos = find_edge_pos(board)
 
     best_pos = None
     best_point = -1
-    print(len(edge_pos))
+    # print(len(edge_pos))
     for pos in edge_pos:
         point = evaluate_position_reachability(board, pos)
 
@@ -339,7 +378,7 @@ def GetReachability(mapStat):
             best_pos = pos
             best_point = point
 
-    print("")
+    # print("")
     return best_pos if best_pos else [0, 0]
 
 
@@ -394,7 +433,7 @@ class StaticVariable:
         - upperbound: the initial upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
     count = 0
-    upperbound = 16
+    upperbound = 6
 
 
 def GetStep(playerID, mapStat, sheepStat):
@@ -419,16 +458,16 @@ def GetStep(playerID, mapStat, sheepStat):
     '''
     StaticVariable.count += 1
 
-    depth = NUM_SHEEP
+    depth = 1
     heuristic = "team-winner-bonus-stupid-punish"
     strategy = "mcts"
     upperbound = StaticVariable.upperbound
-    breadth_evolve_velocity = 61 / 60
+    breadth_evolve_velocity = 1
     breadth_evolve_acceleration = 0
     teammate = None
 
-    n = ((StaticVariable.upperbound)**(depth * NUM_PLAYER + 1) - 1) / (StaticVariable.upperbound - 1)
-    StaticVariable.upperbound = int(((1 - n) / StaticVariable.upperbound + n)**(1 / (depth * NUM_PLAYER - 1)))
+    # n = ((StaticVariable.upperbound)**(depth * NUM_PLAYER + 1) - 1) / (StaticVariable.upperbound - 1)
+    # StaticVariable.upperbound = int(((1 - n) / StaticVariable.upperbound + n)**(1 / (depth * NUM_PLAYER - 1)))
 
     return MinMax(playerID, mapStat, sheepStat, depth, heuristic, strategy, upperbound, breadth_evolve_velocity,
                   breadth_evolve_acceleration, teammate)
