@@ -64,7 +64,7 @@ class MinMaxNode:
         return self.strategies[self.strategy]()
 
     def GetNextState(self, step):
-        next = MinMaxNode((self.turn + 1) % NUM_PLAYER, self.map.copy(), self.sheep.copy(),
+        next = MinMaxNode(self.turn + 1 if self.turn < NUM_PLAYER else 1, self.map.copy(), self.sheep.copy(),
                           self.heuristic, self.strategy, int(self.upperbound * self.breadth_evolve_velocity),
                           self.breadth_evolve_velocity + self.breadth_evolve_acceleration,
                           self.breadth_evolve_acceleration, self.teammate)
@@ -135,7 +135,7 @@ class MinMaxNode:
         self.map[x][y] = -1
 
         return 1 + sum(self._GetArea(x + dx, y + dy, player) for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)))
-    
+
     def _is_adjacent_to_free_space(self, x, y):
         for _, d in DIRECTION.items():
             nx, ny = x + d[0], y + d[1]
@@ -170,7 +170,7 @@ class MinMaxNode:
     def _GetRandomLegalStep(self):
         legal_step = tuple([(x, y), m, dir] for x, y, dir in self._GetLegalPosAndDir() for m in range(1, self.sheep[x][y]))
         return tuple(random.sample(legal_step, self.upperbound)) if self.upperbound < len(legal_step) else legal_step
-    
+
     def _GetRandomLegalStepOneForAllpos(self):
         legal_step = self._GetLegalPosAndDir()
         selected_steps = []
