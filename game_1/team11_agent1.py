@@ -433,7 +433,7 @@ class StaticVariable:
         - upperbound: the initial upper bound of how many legal steps are sampled in a layer of MCTS searching tree
     '''
     count = 0
-    upperbound = 6
+    upperbound = 7
 
 
 def GetStep(playerID, mapStat, sheepStat):
