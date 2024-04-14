@@ -10,7 +10,7 @@ infoServer = ["localhost", 8887]
 '''
     *   請將 idTeam 改成組別    *
 '''
-idTeam = -1
+idTeam = 11
 
 
 def _Connect(ip, port):
@@ -231,7 +231,7 @@ def SendInitPos(id_package,pos):
     向 server 傳達移動訊息
     id_package : 想要回復的訊息的 id_package
     Step = [(x, y),m,dir]
-            x, y 表示要進行動作的座標 
+            x, y 表示要進行動作的座標
             m = 要切割成第二群的羊群數量
             dir = 移動方向(1~9),對應方向如下圖所示
             1 2 3
